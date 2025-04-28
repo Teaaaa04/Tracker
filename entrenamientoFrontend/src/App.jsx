@@ -1,0 +1,20 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./Home";
+import Workout from "./Workout";
+
+export default function App() {
+  return (
+    <Router>
+      <div className="bg-gray-100 min-h-screen text-gray-800">
+        <header className="bg-blue-500 text-white p-4 shadow-md">
+          <h1 className="text-xl font-bold text-center">Workout Tracker</h1>
+        </header>
+
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/workout/:id" element={<Workout />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+}
