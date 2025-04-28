@@ -7,7 +7,9 @@ export default function App() {
     <Router>
       <div className="bg-gray-100 min-h-screen text-gray-800">
         <header className="bg-blue-500 text-white p-4 shadow-md">
-          <h1 className="text-xl font-bold text-center">Workout Tracker</h1>
+          <h1 className="text-xl font-bold text-center">
+            Tracker de entrenamientos
+          </h1>
         </header>
 
         <Routes>

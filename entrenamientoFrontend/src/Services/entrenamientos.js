@@ -1,7 +1,8 @@
 // Función para obtener los entrenamientos desde la API
 const getWorkouts = async () => {
   try {
-    const response = await fetch("http://localhost:3000/entrenamientos");
+    // Cambié la URL para que apunte a la función en Netlify
+    const response = await fetch("/.netlify/functions/entrenamientos");
     const data = await response.json();
     return data; // Asignar los datos a workouts
   } catch (error) {
@@ -11,7 +12,8 @@ const getWorkouts = async () => {
 
 const addWorkout = async () => {
   try {
-    const response = await fetch("http://localhost:3000/entrenamientos", {
+    // Cambié la URL para que apunte a la función en Netlify
+    const response = await fetch("/.netlify/functions/entrenamientos", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -29,7 +31,8 @@ const addWorkout = async () => {
 
 const deleteWorkout = async (id) => {
   try {
-    const response = await fetch(`http://localhost:3000/entrenamientos/${id}`, {
+    // Cambié la URL para que apunte a la función en Netlify
+    const response = await fetch(`/.netlify/functions/entrenamientos/${id}`, {
       method: "DELETE",
     });
     if (response.ok) {

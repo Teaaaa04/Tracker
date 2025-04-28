@@ -22,7 +22,6 @@ export default function Home() {
     const fetchWorkouts = async () => {
       try {
         const fetchedWorkouts = await getWorkouts(); // Esperar los datos de
-        console.log(fetchedWorkouts); // Imprimir los datos obtenidos en la consola
         setWorkouts(fetchedWorkouts); // Actualizar el estado con los datos obtenidos
       } catch (error) {
         console.error("Error fetching workouts:", error);
@@ -35,7 +34,7 @@ export default function Home() {
   const handleAddWorkout = async () => {
     try {
       const newWorkout = await addWorkout(); // Llamar a la función para agregar un nuevo entrenamiento
-      setWorkouts((prevWorkouts) => [...prevWorkouts, newWorkout]); // Actualizar el estado con el nuevo entrenamiento
+      setWorkouts((prevWorkouts) => [...prevWorkouts, newWorkout[0]]); // Actualizar el estado con el nuevo entrenamiento
     } catch (error) {
       console.error("Error adding workout:", error); // Manejar errores al agregar un entrenamiento
     }
@@ -74,7 +73,6 @@ export default function Home() {
       const today = new Date().toDateString();
       return workoutDate === today;
     }
-    console.log("Workout or fecha not found:", workout); // Imprimir en consola si no se encuentra workout o fecha
     return false; // Si workout o workout.fecha no existen, no lo filtramos
   });
 
@@ -91,7 +89,7 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-md">
       {/* Today's Workouts */}
-      <h2 className="text-lg font-semibold mb-2">Today's Workouts</h2>
+      <h2 className="text-lg font-semibold mb-2">Entrenamientos de hoy</h2>
       {todaysWorkouts.length > 0 ? (
         todaysWorkouts.map((workout) => (
           <Link
@@ -109,7 +107,7 @@ export default function Home() {
                 }}
                 className="text-red-500 text-sm"
               >
-                Delete
+                Eliminar
               </button>
             </div>
           </Link>
@@ -132,15 +130,17 @@ export default function Home() {
               />
             </svg>
           </div>
-          <p className="text-lg">No workouts for today yet</p>
-          <p className="text-sm">Tap the + button to add one!</p>
+          <p className="text-lg">No registraste tu entrenamiento hoy</p>
+          <p className="text-sm">Toca el boton + para agregar uno</p>
         </div>
       )}
 
       {/* Past Workouts */}
       {pastWorkouts.length > 0 && (
         <>
-          <h2 className="text-lg font-semibold mt-8 mb-2">Previous Workouts</h2>
+          <h2 className="text-lg font-semibold mt-8 mb-2">
+            Entrenamientos anteriores
+          </h2>
           {pastWorkouts.map((workout) => (
             <Link
               key={workout.entrenamientoid} // Asegurando que workout.id sea único
@@ -157,7 +157,7 @@ export default function Home() {
                   }}
                   className="text-red-500 text-sm"
                 >
-                  Delete
+                  Eliminar
                 </button>
               </div>
             </Link>
@@ -178,20 +178,20 @@ export default function Home() {
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full">
             <h2 className="text-lg font-semibold mb-4">
-              Are you sure you want to delete this workout?
+              Estas seguro que deseas eliminar este entrenamiento?
             </h2>
             <div className="flex justify-end gap-4">
               <button
                 onClick={handleModalClose}
                 className="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg"
               >
-                Cancel
+                Cancelar
               </button>
               <button
                 onClick={handleDeleteWorkout}
                 className="bg-red-500 text-white py-2 px-4 rounded-lg"
               >
-                Confirm
+                Confirmar
               </button>
             </div>
           </div>

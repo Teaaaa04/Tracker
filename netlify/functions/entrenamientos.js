@@ -9,7 +9,7 @@ router.post("/", async (req, res) => {
 
   // Insertar el nuevo entrenamiento en Supabase
   const { data, error } = await supabase
-    .from("entrenamiento") // Asegúrate de que la tabla 'entrenamientos' esté creada en Supabase
+    .from("entrenamiento") // Asegúrate de que la tabla 'entrenamiento' esté creada en Supabase
     .insert(
       { fecha } // Insertar el campo 'fecha'
     )

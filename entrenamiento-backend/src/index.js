@@ -15,7 +15,6 @@ const ejerciciosRoutes = require("./routes/ejercicios");
 
 app.use("/entrenamientos", entrenamientosRoutes);
 app.use("/ejercicios", ejerciciosRoutes);
-// app.use("/series", seriesRoutes);
 
 // Sincronizar la base de datos con Supabase y luego iniciar el servidor
 app.listen(port, () => {
