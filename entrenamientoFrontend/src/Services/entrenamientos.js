@@ -1,9 +1,10 @@
 // Función para obtener los entrenamientos desde la API
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 const getWorkouts = async () => {
   try {
-    const response = await fetch(
-      "https://trackertea.vercel.app/entrenamientos"
-    );
+    const response = await fetch(`${API_URL}/entrenamientos`);
     const data = await response.json();
     return data; // Asignar los datos a workouts
   } catch (error) {
@@ -13,18 +14,15 @@ const getWorkouts = async () => {
 
 const addWorkout = async () => {
   try {
-    const response = await fetch(
-      "https://trackertea.vercel.app/entrenamientos",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fecha: new Date().toISOString(),
-        }),
-      }
-    );
+    const response = await fetch(`${API_URL}/entrenamientos`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fecha: new Date().toISOString(),
+      }),
+    });
     const newWorkout = await response.json();
     return newWorkout; // Devolver el nuevo entrenamiento creado
   } catch (error) {
@@ -34,12 +32,9 @@ const addWorkout = async () => {
 
 const deleteWorkout = async (id) => {
   try {
-    const response = await fetch(
-      `https://trackertea.vercel.app/entrenamientos/${id}`,
-      {
-        method: "DELETE",
-      }
-    );
+    const response = await fetch(`${API_URL}/entrenamientos/${id}`, {
+      method: "DELETE",
+    });
     if (response.ok) {
       console.log("Workout deleted successfully");
     } else {

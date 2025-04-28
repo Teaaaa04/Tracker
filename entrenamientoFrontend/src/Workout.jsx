@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import DeleteModal from "./DeleteModal";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const formatDate = (date) => {
   const options = { weekday: "long", day: "numeric", month: "long" };
@@ -25,7 +26,7 @@ export default function Workout() {
   useEffect(() => {
     const fetchExercises = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/ejercicios/${id}`);
+        const response = await fetch(`${API_URL}/ejercicios/${id}`);
         const data = await response.json();
 
         const exercisesWithIsClosed = data.map((exercise) => ({
@@ -49,7 +50,7 @@ export default function Workout() {
 
   const handleCloseExercise = async (exercise) => {
     try {
-      const response = await fetch(`http://localhost:3000/ejercicios/${id}`, {
+      const response = await fetch(`${API_URL}/ejercicios/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -88,7 +89,7 @@ export default function Workout() {
     try {
       if (exercise.isClosed) {
         const response = await fetch(
-          `http://localhost:3000/ejercicios/${exercise.ejercicioid}`,
+          `${API_URL}/ejercicios/${exercise.ejercicioid}`,
           {
             method: "DELETE",
             headers: {
