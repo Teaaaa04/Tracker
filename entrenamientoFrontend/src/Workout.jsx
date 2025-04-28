@@ -25,8 +25,7 @@ export default function Workout() {
   useEffect(() => {
     const fetchExercises = async () => {
       try {
-        // Cambié la URL para que apunte a la función de Netlify
-        const response = await fetch(`/.netlify/functions/ejercicios/${id}`);
+        const response = await fetch(`http://localhost:3000/ejercicios/${id}`);
         const data = await response.json();
 
         const exercisesWithIsClosed = data.map((exercise) => ({
@@ -50,8 +49,7 @@ export default function Workout() {
 
   const handleCloseExercise = async (exercise) => {
     try {
-      // Cambié la URL para que apunte a la función de Netlify
-      const response = await fetch(`/.netlify/functions/ejercicios/${id}`, {
+      const response = await fetch(`http://localhost:3000/ejercicios/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -89,9 +87,8 @@ export default function Workout() {
   const confirmDelete = async (exercise) => {
     try {
       if (exercise.isClosed) {
-        // Cambié la URL para que apunte a la función de Netlify
         const response = await fetch(
-          `/.netlify/functions/ejercicios/${exercise.ejercicioid}`,
+          `http://localhost:3000/ejercicios/${exercise.ejercicioid}`,
           {
             method: "DELETE",
             headers: {
