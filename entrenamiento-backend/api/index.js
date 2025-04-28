@@ -13,6 +13,10 @@ const entrenamientosRoutes = require("../src/routes/entrenamientos");
 const ejerciciosRoutes = require("../src/routes/ejercicios");
 // const seriesRoutes = require("./routes/series");
 
+app.get("/", (req, res) => {
+  res.send("¡Bienvenido a la API de Entrenamientos!");
+});
+
 app.use("/entrenamientos", entrenamientosRoutes);
 app.use("/ejercicios", ejerciciosRoutes);
 
