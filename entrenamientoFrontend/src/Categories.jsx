@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { getCategories, addCategory } from "./services/categorias.js"; // Asegúrate de que esta función esté definida en tu archivo de servicios
+import { getCategories, addCategory } from "./services/categorias.js";
+import { useNavigate } from "react-router-dom";
 
 const Categories = () => {
+  const navigate = useNavigate();
   localStorage.removeItem("categoryId");
   const [categories, setCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -11,7 +13,7 @@ const Categories = () => {
   const handleCategorySelect = (categoryId, categoryName) => {
     localStorage.setItem("categoryId", categoryId);
     localStorage.setItem("categoryName", categoryName); // Cambia esto si necesitas otro valor
-    window.location.href = `/home`;
+    navigate("/home");
   };
 
   useEffect(() => {
@@ -76,7 +78,7 @@ const Categories = () => {
       )}
 
       <button
-        onClick={() => (window.location.href = "/")}
+        onClick={() => navigate("/")}
         className="mt-6 block w-full bg-blue-500 text-white py-2 rounded"
       >
         Volver a la lista de selección de usuario

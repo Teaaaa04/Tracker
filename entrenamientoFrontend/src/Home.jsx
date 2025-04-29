@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import {
   getWorkouts,
   addWorkout,
@@ -12,6 +14,7 @@ const formatDate = (date) => {
 };
 
 export default function Home() {
+  const navigate = useNavigate();
   const categoriaId = localStorage.getItem("categoryId");
   const categoriaName = localStorage.getItem("categoryName");
   const [newWorkoutName, setNewWorkoutName] = useState("");
@@ -66,7 +69,7 @@ export default function Home() {
 
   const handleSelectWorkout = (id) => {
     localStorage.setItem("workoutId", id);
-    window.location.href = `/workout`;
+    navigate("/workout"); // Navegar a la página de ejercicios
   };
 
   const handleModalClose = () => {
@@ -173,7 +176,7 @@ export default function Home() {
         </div>
       )}
       <button
-        onClick={() => (window.location.href = "/categories")}
+        onClick={() => navigate("/categories")}
         className="mt-6 block w-full bg-blue-500 text-white py-2 rounded"
       >
         Volver a la lista de categorías

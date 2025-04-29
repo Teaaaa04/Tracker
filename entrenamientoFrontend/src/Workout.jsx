@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import DeleteModal from "./DeleteModal";
+import { useNavigate } from "react-router-dom";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 import {
@@ -9,6 +11,7 @@ import {
 } from "./services/ejercicios.js";
 
 export default function Workout() {
+  const navigate = useNavigate();
   const workoutId = localStorage.getItem("workoutId");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -316,7 +319,7 @@ export default function Workout() {
       </div>
 
       <button
-        onClick={() => (window.location.href = "/home")}
+        onClick={() => navigate("/home")}
         className="mt-6 block w-full bg-blue-500 text-white py-2 rounded"
       >
         Volver a la lista de entrenamientos

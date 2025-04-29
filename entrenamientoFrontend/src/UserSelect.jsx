@@ -3,13 +3,15 @@ const users = [
   { id: 2, name: "Juan" },
   { id: 3, name: "Anita" },
 ];
+import { useNavigate } from "react-router-dom";
 
 const UserSelect = () => {
+  const navigate = useNavigate();
   localStorage.clear(); // Limpiar localStorage al cargar el componente
 
   const handleUserClick = (id) => {
-    localStorage.setItem("userId", id); // Guardar el ID del usuario en localStorage
-    window.location.href = "/categories"; // Redirigir a la página de inicio
+    localStorage.setItem("userId", id);
+    navigate("/categories");
   };
 
   return (
