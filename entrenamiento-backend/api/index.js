@@ -11,6 +11,7 @@ app.use(express.json()); // Middleware para parsear el cuerpo de las solicitudes
 // Rutas
 const entrenamientosRoutes = require("../src/routes/entrenamientos");
 const ejerciciosRoutes = require("../src/routes/ejercicios");
+const categoriasRoutes = require("../src/routes/categorias");
 // const seriesRoutes = require("./routes/series");
 
 app.get("/", (req, res) => {
@@ -19,6 +20,7 @@ app.get("/", (req, res) => {
 
 app.use("/entrenamientos", entrenamientosRoutes);
 app.use("/ejercicios", ejerciciosRoutes);
+app.use("/categorias", categoriasRoutes);
 
 // Sincronizar la base de datos con Supabase y luego iniciar el servidor
 app.listen(port, () => {

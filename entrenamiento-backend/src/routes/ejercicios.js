@@ -71,7 +71,6 @@ router.post("/:entrenamientoid", async (req, res) => {
         throw new Error(seriesError.message);
       }
     }
-
     res.status(201).json(data[0]); // Retornamos el ejercicio creado
   } catch (error) {
     console.error(error);

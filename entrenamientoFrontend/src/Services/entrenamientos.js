@@ -1,18 +1,16 @@
-// Función para obtener los entrenamientos desde la API
-
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-const getWorkouts = async () => {
+const getWorkouts = async (categoriaId) => {
   try {
-    const response = await fetch(`${API_URL}/entrenamientos`);
+    const response = await fetch(`${API_URL}/entrenamientos/${categoriaId}`);
     const data = await response.json();
-    return data; // Asignar los datos a workouts
+    return data;
   } catch (error) {
     console.error("Error fetching workouts:", error);
   }
 };
 
-const addWorkout = async () => {
+const addWorkout = async (nombre, categoriaId) => {
   try {
     const response = await fetch(`${API_URL}/entrenamientos`, {
       method: "POST",
@@ -21,10 +19,12 @@ const addWorkout = async () => {
       },
       body: JSON.stringify({
         fecha: new Date().toISOString(),
+        nombre: nombre,
+        categoriaid: categoriaId,
       }),
     });
     const newWorkout = await response.json();
-    return newWorkout; // Devolver el nuevo entrenamiento creado
+    return newWorkout;
   } catch (error) {
     console.error("Error adding workout:", error);
   }

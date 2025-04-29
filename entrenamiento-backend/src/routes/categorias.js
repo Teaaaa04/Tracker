@@ -5,13 +5,13 @@ const supabase = require("../../supabaseClient"); // Importar el cliente de Supa
 
 // Endpoint para agregar un entrenamiento
 router.post("/", async (req, res) => {
-  const { fecha, nombre, categoriaid } = req.body; // Obtener la fecha del cuerpo de la solicitud
+  const { nombre, userid } = req.body; // Obtener la fecha del cuerpo de la solicitud
 
   // Insertar el nuevo entrenamiento en Supabase
   const { data, error } = await supabase
-    .from("entrenamiento") // Asegúrate de que la tabla 'entrenamientos' esté creada en Supabase
+    .from("categoria") // Asegúrate de que la tabla 'entrenamientos' esté creada en Supabase
     .insert(
-      { fecha, nombre, categoriaid } // Insertar el campo 'fecha'
+      { nombre, userid } // Insertar el campo 'fecha'
     )
     .select("*"); // Seleccionar todos los campos del nuevo entrenamiento
 
@@ -24,15 +24,18 @@ router.post("/", async (req, res) => {
 
 // Endpoint para obtener todos los entrenamientos
 router.get("/:id", async (req, res) => {
-  const { id } = req.params; // Obtener el ID del usuario de los parámetros de la solicitud
   const { data, error } = await supabase
-    .from("entrenamiento") // Seleccionar todos los entrenamientos de la tabla
+    .from("categoria") // Seleccionar todos los entrenamientos de la tabla
     .select("*")
-    .eq("categoriaid", id);
+    .eq("userid", req.params.id); // Filtrar por el ID del usuario
+
+  if (data === null) {
+    return res.status(404).json({ error: "No se encontraron categorias" });
+  }
 
   if (error) {
     return res.status(500).json({
-      error: "Error al obtener los entrenamientos",
+      error: "Error al obtener las categorias",
       details: error.message,
     });
   }
@@ -46,19 +49,19 @@ router.delete("/:id", async (req, res) => {
 
   // Eliminar el entrenamiento de la base de datos
   const { error } = await supabase
-    .from("entrenamiento")
+    .from("categoria")
     .delete()
-    .eq("entrenamientoid", id); // Suponiendo que 'id' es el nombre de la columna en la tabla
+    .eq("categoriaid", id); // Suponiendo que 'id' es el nombre de la columna en la tabla
 
   if (error) {
     console.error(error); // Imprimir el error en la consola para depuración
     return res.status(500).json({
-      error: "Error al eliminar el entrenamiento",
+      error: "Error al eliminar la categoria",
       details: error.message,
     });
   }
 
-  res.status(200).json({ message: "Entrenamiento eliminado" }); // Confirmar que se eliminó el entrenamiento
+  res.status(200).json({ message: "categoria eliminada" }); // Confirmar que se eliminó el entrenamiento
 });
 
 module.exports = router;

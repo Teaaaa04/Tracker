@@ -1,18 +1,16 @@
-import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import DeleteModal from "./DeleteModal";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-const formatDate = (date) => {
-  const options = { weekday: "long", day: "numeric", month: "long" };
-  const formatted = date.toLocaleDateString("es-AR", options);
-
-  return formatted;
-};
+import {
+  closeExercise,
+  deleteExercise,
+  getExercises,
+} from "./services/ejercicios";
 
 export default function Workout() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const workoutId = localStorage.getItem("workoutId");
+  const [isLoading, setIsLoading] = useState(true);
 
   const [exercises, setExercises] = useState([]);
 
@@ -25,23 +23,24 @@ export default function Workout() {
   // Cargar los ejercicios cuando el componente se monta
   useEffect(() => {
     const fetchExercises = async () => {
+      setIsLoading(true);
       try {
-        const response = await fetch(`${API_URL}/ejercicios/${id}`);
-        const data = await response.json();
+        const data = await getExercises(workoutId);
 
         const exercisesWithIsClosed = data.map((exercise) => ({
           ...exercise,
-          isClosed: true, // agregamos isClosed en todos
+          isClosed: true,
         }));
 
         setExercises(exercisesWithIsClosed);
       } catch (error) {
         console.error("Error fetching exercises:", error);
       }
+      setIsLoading(false);
     };
 
     fetchExercises();
-  }, [id]); // Cambiar el efecto para que dependa de `id`
+  }, [workoutId]); // Cambiar el efecto para que dependa de `id`
 
   const handleDeleteExercise = (exercise) => {
     setExerciseToDelete(exercise);
@@ -49,63 +48,46 @@ export default function Workout() {
   };
 
   const handleCloseExercise = async (exercise) => {
+    setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/ejercicios/${id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nombre: exercise.nombre,
-          series: exercise.series,
-        }), // Cambiamos el estado a cerrado
-      });
+      const ejercicioCreado = await closeExercise(exercise, workoutId);
 
       const exercisesWithIsClosed = exercises.map((ex) =>
-        ex.ejercicioid === exercise.ejercicioid ? { ...ex, isClosed: true } : ex
+        ex.ejercicioid === exercise.ejercicioid
+          ? {
+              ejercicioid: ejercicioCreado.ejercicioid,
+              nombre: ejercicioCreado.nombre,
+              series: exercise.series,
+              isClosed: true,
+            }
+          : ex
       );
 
       setExercises(exercisesWithIsClosed);
     } catch (error) {
       console.error("Error closing exercise:", error);
     }
+    setIsLoading(false);
   };
 
   const addExercise = () => {
     if (exerciseName.trim() === "") return;
 
     const newExercise = {
-      ejercicioid: Date.now(), // Generamos un ID único para el nuevo ejercicio
+      ejercicioid: Date.now(),
       nombre: exerciseName,
       series: [],
       isClosed: false,
     };
 
-    setExercises([...exercises, newExercise]); // Añadimos el nuevo ejercicio al estado
-    setExerciseName(""); // Limpiamos el campo de entrada
+    setExercises([...exercises, newExercise]);
+    setExerciseName("");
   };
 
   const confirmDelete = async (exercise) => {
+    setIsLoading(true);
     try {
-      if (exercise.isClosed) {
-        const response = await fetch(
-          `${API_URL}/ejercicios/${exercise.ejercicioid}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              nombre: exercise.nombre,
-              series: exercise.series,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          console.error("Failed to delete exercise");
-        }
-      }
+      await deleteExercise(exercise);
 
       setExercises(
         exercises.filter((ex) => ex.ejercicioid !== exercise.ejercicioid)
@@ -113,11 +95,11 @@ export default function Workout() {
     } catch (error) {
       console.error("Error deleting exercise:", error);
     }
+    setIsLoading(false);
 
-    setShowDeleteModal(false); // Cerrar el modal después de eliminar
+    setShowDeleteModal(false);
   };
 
-  // Función para agregar un set a un ejercicio
   const [repsInput, setRepsInput] = useState({});
   const [weightInput, setWeightInput] = useState({});
 
@@ -190,14 +172,7 @@ export default function Workout() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-md">
       <h1 className="text-2xl font-bold mb-4">Detalles del entrenamiento</h1>
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <p className="mb-2">
-          <strong>Fecha:</strong> {formatDate(new Date())}{" "}
-          {/* Aquí ajustamos para que use la fecha actual */}
-        </p>
-      </div>
 
-      {/* Add Exercise */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <h2 className="text-lg font-semibold mb-2">Agregar ejercicio</h2>
         <div className="flex">
@@ -218,7 +193,11 @@ export default function Workout() {
       </div>
 
       {/* Exercises List */}
-      {exercises.length > 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center items-center py-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      ) : exercises.length > 0 ? (
         exercises.map((exercise) => (
           <div
             key={exercise.ejercicioid}
@@ -229,14 +208,13 @@ export default function Workout() {
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-2xl font-semibold">{exercise.nombre}</h3>
               <button
-                onClick={() => handleDeleteExercise(exercise)} // Cambiamos aquí
+                onClick={() => handleDeleteExercise(exercise)}
                 className="text-red-500 text-sm"
               >
                 Eliminar
               </button>
             </div>
 
-            {/* Sets */}
             {exercise.series.length > 0 ? (
               <ul className="my-4">
                 {exercise.series.map((set) => (
@@ -271,7 +249,6 @@ export default function Workout() {
               />
             )}
 
-            {/* Add Set */}
             {!exercise.isClosed && (
               <>
                 <div className="flex my-4">
@@ -334,12 +311,12 @@ export default function Workout() {
 
       {/* Total Volume */}
       <div className="bg-white rounded-lg shadow p-4 mt-6">
-        <h3 className="text-2xl font-semibold">Volumen total de hoy</h3>
+        <h3 className="text-2xl font-semibold">Volumen total</h3>
         <p className="text-xl">{calculateTotalVolume()} kg</p>
       </div>
 
       <button
-        onClick={() => navigate("/")}
+        onClick={() => (window.location.href = "/home")}
         className="mt-6 block w-full bg-blue-500 text-white py-2 rounded"
       >
         Volver a la lista de entrenamientos

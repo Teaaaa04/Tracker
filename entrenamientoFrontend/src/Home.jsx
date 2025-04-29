@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   getWorkouts,
   addWorkout,
   deleteWorkout,
-} from "./Services/entrenamientos";
+} from "./services/entrenamientos";
 
 const formatDate = (date) => {
   const options = { weekday: "long", day: "numeric", month: "long" };
@@ -13,34 +12,42 @@ const formatDate = (date) => {
 };
 
 export default function Home() {
+  const categoriaId = localStorage.getItem("categoryId");
+  const categoriaName = localStorage.getItem("categoryName");
+  const [newWorkoutName, setNewWorkoutName] = useState("");
   const [workouts, setWorkouts] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false); // Estado para abrir y cerrar el modal
-  const [workoutToDelete, setWorkoutToDelete] = useState(null); // Estado para almacenar el entrenamiento a eliminar
+  const [modalOpen, setModalOpen] = useState(false);
+  const [workoutToDelete, setWorkoutToDelete] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Llamar a la API para obtener los entrenamientos
     const fetchWorkouts = async () => {
+      setIsLoading(true);
       try {
-        const fetchedWorkouts = await getWorkouts(); // Esperar los datos de
-        setWorkouts(fetchedWorkouts); // Actualizar el estado con los datos obtenidos
+        const fetchedWorkouts = await getWorkouts(categoriaId);
+        setWorkouts(fetchedWorkouts);
       } catch (error) {
         console.error("Error fetching workouts:", error);
       }
+      setIsLoading(false);
     };
 
-    fetchWorkouts(); // Ejecutar la función asincrónica
-  }, []); // Este efecto solo se ejecutará una vez cuando el componente se monte
+    fetchWorkouts();
+  }, [categoriaId]);
 
   const handleAddWorkout = async () => {
+    setIsLoading(true);
     try {
-      const newWorkout = await addWorkout(); // Llamar a la función para agregar un nuevo entrenamiento
-      setWorkouts((prevWorkouts) => [...prevWorkouts, newWorkout[0]]); // Actualizar el estado con el nuevo entrenamiento
+      const newWorkout = await addWorkout(newWorkoutName, categoriaId);
+      setWorkouts((prevWorkouts) => [...prevWorkouts, newWorkout[0]]);
     } catch (error) {
-      console.error("Error adding workout:", error); // Manejar errores al agregar un entrenamiento
+      console.error("Error adding workout:", error);
     }
+    setIsLoading(false);
   };
 
   const handleDeleteWorkout = async () => {
+    setIsLoading(true);
     try {
       if (workoutToDelete) {
         await deleteWorkout(workoutToDelete); // Llamar a la función para eliminar un entrenamiento
@@ -54,6 +61,12 @@ export default function Home() {
     } catch (error) {
       console.error("Error deleting workout:", error); // Manejar errores al eliminar un entrenamiento
     }
+    setIsLoading(false);
+  };
+
+  const handleSelectWorkout = (id) => {
+    localStorage.setItem("workoutId", id);
+    window.location.href = `/workout`;
   };
 
   const handleModalClose = () => {
@@ -66,51 +79,52 @@ export default function Home() {
     setModalOpen(true); // Abrir el modal
   };
 
-  const todaysWorkouts = workouts.filter((workout) => {
-    if (workout && workout.fecha) {
-      // Verificar que workout y workout.fecha existan
-      const workoutDate = new Date(workout.fecha).toDateString();
-      const today = new Date().toDateString();
-      return workoutDate === today;
-    }
-    return false; // Si workout o workout.fecha no existen, no lo filtramos
-  });
-
-  const pastWorkouts = workouts.filter((workout) => {
-    if (workout && workout.fecha) {
-      // Verificar que workout y workout.fecha existan
-      const workoutDate = new Date(workout.fecha).toDateString();
-      const today = new Date().toDateString();
-      return workoutDate !== today;
-    }
-    return false; // Si workout o workout.fecha no existen, no lo filtramos
-  });
-
   return (
     <div className="container mx-auto px-4 py-6 max-w-md">
-      {/* Today's Workouts */}
-      <h2 className="text-lg font-semibold mb-2">Entrenamientos de hoy</h2>
-      {todaysWorkouts.length > 0 ? (
-        todaysWorkouts.map((workout) => (
-          <Link
-            key={workout.entrenamientoid} // Asegurando que workout.id sea único
-            to={`/workout/${workout.entrenamientoid}`}
-            className="block bg-white rounded-lg shadow-sm mb-4 p-4 hover:bg-gray-100"
+      <h1 className="text-2xl font-bold mb-4">{categoriaName}</h1>
+      <div className="flex gap-2 mb-4">
+        <input
+          type="text"
+          value={newWorkoutName}
+          onChange={(e) => setNewWorkoutName(e.target.value)}
+          placeholder="Nuevo entrenamiento"
+          className="flex-1 p-2 border rounded"
+        />
+        <button
+          onClick={handleAddWorkout}
+          className="bg-blue-500 text-white p-2 rounded"
+        >
+          Agregar
+        </button>
+      </div>
+      <h2 className="text-lg font-semibold mb-2">Entrenamientos</h2>
+      {isLoading ? (
+        <div className="flex justify-center items-center py-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      ) : workouts.length > 0 ? (
+        workouts.map((workout) => (
+          <div
+            key={workout.entrenamientoid}
+            onClick={() => handleSelectWorkout(workout.entrenamientoid)}
+            className="block bg-white w-full rounded-lg shadow-sm mb-4 p-4 hover:bg-gray-100 cursor-pointer"
           >
             <div className="flex justify-between items-center">
-              <h2>{formatDate(new Date(workout.fecha))}</h2>{" "}
-              {/* Usar new Date para convertir la fecha */}
+              <div className="flex flex-col items-start gap-2">
+                <h2 className="text-lg font-semibold">{workout.nombre}</h2>
+                <h2>{formatDate(new Date(workout.fecha))}</h2>
+              </div>
               <button
                 onClick={(e) => {
-                  e.preventDefault(); // Prevenir la navegación al hacer clic en el botón
-                  handleModalOpen(workout.entrenamientoid); // Abrir el modal
+                  e.stopPropagation(); // <- stop click from bubbling up
+                  handleModalOpen(workout.entrenamientoid);
                 }}
                 className="text-red-500 text-sm"
               >
                 Eliminar
               </button>
             </div>
-          </Link>
+          </div>
         ))
       ) : (
         <div className="text-center py-10 text-gray-500">
@@ -130,48 +144,9 @@ export default function Home() {
               />
             </svg>
           </div>
-          <p className="text-lg">No registraste tu entrenamiento hoy</p>
-          <p className="text-sm">Toca el boton + para agregar uno</p>
+          <p className="text-lg">No registraste entrenamientos</p>
         </div>
       )}
-
-      {/* Past Workouts */}
-      {pastWorkouts.length > 0 && (
-        <>
-          <h2 className="text-lg font-semibold mt-8 mb-2">
-            Entrenamientos anteriores
-          </h2>
-          {pastWorkouts.map((workout) => (
-            <Link
-              key={workout.entrenamientoid} // Asegurando que workout.id sea único
-              to={`/workout/${workout.entrenamientoid}`}
-              className="block bg-white rounded-lg shadow-sm mb-4 p-4 hover:bg-gray-100"
-            >
-              <div className="flex justify-between items-center">
-                <h2>{formatDate(new Date(workout.fecha))}</h2>{" "}
-                {/* Usar new Date para convertir la fecha */}
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleModalOpen(workout.entrenamientoid); // Abrir el modal
-                  }}
-                  className="text-red-500 text-sm"
-                >
-                  Eliminar
-                </button>
-              </div>
-            </Link>
-          ))}
-        </>
-      )}
-
-      {/* Add Workout Button */}
-      <button
-        onClick={handleAddWorkout}
-        className="fixed bottom-8 right-8 w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center text-2xl"
-      >
-        +
-      </button>
 
       {/* Modal */}
       {modalOpen && (
@@ -197,6 +172,12 @@ export default function Home() {
           </div>
         </div>
       )}
+      <button
+        onClick={() => (window.location.href = "/categories")}
+        className="mt-6 block w-full bg-blue-500 text-white py-2 rounded"
+      >
+        Volver a la lista de categorías
+      </button>
     </div>
   );
 }
