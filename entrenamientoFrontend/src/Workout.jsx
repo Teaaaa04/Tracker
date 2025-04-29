@@ -6,7 +6,7 @@ import {
   closeExercise,
   deleteExercise,
   getExercises,
-} from "./services/ejercicios";
+} from "./services/ejercicios.js";
 
 export default function Workout() {
   const workoutId = localStorage.getItem("workoutId");

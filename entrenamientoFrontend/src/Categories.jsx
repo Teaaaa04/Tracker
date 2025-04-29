@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getCategories, addCategory } from "./services/categorias"; // Asegúrate de que esta función esté definida en tu archivo de servicios
+import { getCategories, addCategory } from "./services/categorias.js"; // Asegúrate de que esta función esté definida en tu archivo de servicios
 
 const Categories = () => {
   localStorage.removeItem("categoryId");

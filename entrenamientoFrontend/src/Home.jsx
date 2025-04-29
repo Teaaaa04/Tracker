@@ -3,7 +3,7 @@ import {
   getWorkouts,
   addWorkout,
   deleteWorkout,
-} from "./services/entrenamientos";
+} from "./services/entrenamientos.js";
 
 const formatDate = (date) => {
   const options = { weekday: "long", day: "numeric", month: "long" };
