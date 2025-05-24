@@ -10,7 +10,7 @@ const getWorkouts = async (categoriaId) => {
   }
 };
 
-const addWorkout = async (nombre, categoriaId) => {
+const addWorkout = async (nombre, fechaEntrenamiento, categoriaId) => {
   try {
     const response = await fetch(`${API_URL}/entrenamientos`, {
       method: "POST",
@@ -18,7 +18,7 @@ const addWorkout = async (nombre, categoriaId) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        fecha: new Date().toISOString(),
+        fecha: fechaEntrenamiento || new Date().toISOString(),
         nombre: nombre,
         categoriaid: categoriaId,
       }),

@@ -18,6 +18,7 @@ export default function Home() {
   const categoriaId = localStorage.getItem("categoryId");
   const categoriaName = localStorage.getItem("categoryName");
   const [newWorkoutName, setNewWorkoutName] = useState("");
+  const [newWorkoutDate, setNewWorkoutDate] = useState("");
   const [workouts, setWorkouts] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [workoutToDelete, setWorkoutToDelete] = useState(null);
@@ -41,7 +42,11 @@ export default function Home() {
   const handleAddWorkout = async () => {
     setIsLoading(true);
     try {
-      const newWorkout = await addWorkout(newWorkoutName, categoriaId);
+      const newWorkout = await addWorkout(
+        newWorkoutName,
+        newWorkoutDate,
+        categoriaId
+      );
       setWorkouts((prevWorkouts) => [...prevWorkouts, newWorkout[0]]);
     } catch (error) {
       console.error("Error adding workout:", error);
@@ -92,6 +97,13 @@ export default function Home() {
           onChange={(e) => setNewWorkoutName(e.target.value)}
           placeholder="Nuevo entrenamiento"
           className="flex-1 p-2 border rounded"
+        />
+        <input
+          type="date"
+          placeholder="Fecha"
+          value={newWorkoutDate}
+          onChange={(e) => setNewWorkoutDate(e.target.value)}
+          className="p-2 border rounded w-1/4"
         />
         <button
           onClick={handleAddWorkout}

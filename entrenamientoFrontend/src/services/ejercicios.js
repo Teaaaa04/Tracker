@@ -41,4 +41,21 @@ const getExercises = async (workoutId) => {
   return await response.json();
 };
 
-export { closeExercise, deleteExercise, getExercises };
+const updateExercise = async (exercise) => {
+  console.log("Updating exercise:", exercise);
+  const response = await fetch(
+    `${API_URL}/ejercicios/${exercise.ejercicioid}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        series: exercise.series,
+      }),
+    }
+  );
+  return await response.json();
+};
+
+export { closeExercise, deleteExercise, getExercises, updateExercise };

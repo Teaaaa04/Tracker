@@ -8,33 +8,33 @@ import {
   closeExercise,
   deleteExercise,
   getExercises,
+  updateExercise,
 } from "./services/ejercicios.js";
 
 export default function Workout() {
   const navigate = useNavigate();
   const workoutId = localStorage.getItem("workoutId");
   const [isLoading, setIsLoading] = useState(true);
-
   const [exercises, setExercises] = useState([]);
-
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [exerciseToDelete, setExerciseToDelete] = useState(null);
-
-  // Función para agregar un nuevo ejercicio
   const [exerciseName, setExerciseName] = useState("");
 
-  // Cargar los ejercicios cuando el componente se monta
   useEffect(() => {
     const fetchExercises = async () => {
       setIsLoading(true);
       try {
         const data = await getExercises(workoutId);
-
         const exercisesWithIsClosed = data.map((exercise) => ({
           ...exercise,
           isClosed: true,
+          // Asegurar que los sets tengan la estructura correcta
+          series: exercise.series.map((set) => ({
+            ...set,
+            repeticiones: set.repeticiones || "",
+            peso: set.peso || "",
+          })),
         }));
-
         setExercises(exercisesWithIsClosed);
       } catch (error) {
         console.error("Error fetching exercises:", error);
@@ -43,7 +43,7 @@ export default function Workout() {
     };
 
     fetchExercises();
-  }, [workoutId]); // Cambiar el efecto para que dependa de `id`
+  }, [workoutId]);
 
   const handleDeleteExercise = (exercise) => {
     setExerciseToDelete(exercise);
@@ -51,38 +51,84 @@ export default function Workout() {
   };
 
   const handleCloseExercise = async (exercise) => {
+    // Validar que todos los sets tengan valores válidos
+    const invalidSet = exercise.series.find(
+      (set) =>
+        !set.repeticiones ||
+        isNaN(set.repeticiones) ||
+        set.repeticiones <= 0 ||
+        !set.peso ||
+        isNaN(set.peso) ||
+        set.peso <= 0
+    );
+
+    if (invalidSet) {
+      // Eliminar ese set del ejercicio y guardar en el mismo array
+      exercise.series = exercise.series.filter(
+        (set) =>
+          set.repeticiones &&
+          !isNaN(set.repeticiones) &&
+          set.repeticiones > 0 &&
+          set.peso &&
+          !isNaN(set.peso) &&
+          set.peso > 0
+      );
+    }
+
     setIsLoading(true);
     try {
-      const ejercicioCreado = await closeExercise(exercise, workoutId);
+      let ejercicioCreado;
+      const isNew =
+        typeof exercise.ejercicioid === "number" &&
+        exercise.ejercicioid.toString().length >= 13;
 
-      const exercisesWithIsClosed = exercises.map((ex) =>
+      // Convertir los valores a números antes de enviar
+      const exerciseToSave = {
+        ...exercise,
+        series: exercise.series.map((set) => ({
+          ...set,
+          repeticiones: Number(set.repeticiones),
+          peso: Number(set.peso),
+        })),
+      };
+
+      if (isNew) {
+        ejercicioCreado = await closeExercise(exerciseToSave, workoutId);
+      } else {
+        ejercicioCreado = await updateExercise(exerciseToSave, workoutId);
+      }
+
+      const updated = exercises.map((ex) =>
         ex.ejercicioid === exercise.ejercicioid
           ? {
               ejercicioid: ejercicioCreado.ejercicioid,
               nombre: ejercicioCreado.nombre,
-              series: exercise.series,
+              series: exerciseToSave.series,
               isClosed: true,
             }
           : ex
       );
-
-      setExercises(exercisesWithIsClosed);
+      setExercises(updated);
     } catch (error) {
-      console.error("Error closing exercise:", error);
+      console.error("Error closing/updating exercise:", error);
     }
     setIsLoading(false);
   };
 
   const addExercise = () => {
     if (exerciseName.trim() === "") return;
-
     const newExercise = {
       ejercicioid: Date.now(),
       nombre: exerciseName,
-      series: [],
+      series: [
+        {
+          id: Date.now(),
+          repeticiones: "",
+          peso: "",
+        },
+      ],
       isClosed: false,
     };
-
     setExercises([...exercises, newExercise]);
     setExerciseName("");
   };
@@ -91,7 +137,6 @@ export default function Workout() {
     setIsLoading(true);
     try {
       await deleteExercise(exercise);
-
       setExercises(
         exercises.filter((ex) => ex.ejercicioid !== exercise.ejercicioid)
       );
@@ -99,26 +144,10 @@ export default function Workout() {
       console.error("Error deleting exercise:", error);
     }
     setIsLoading(false);
-
     setShowDeleteModal(false);
   };
 
-  const [repsInput, setRepsInput] = useState({});
-  const [weightInput, setWeightInput] = useState({});
-
-  const addSet = (exercise) => {
-    const repeticiones = repsInput[exercise.ejercicioid];
-    const peso = weightInput[exercise.ejercicioid];
-    if (
-      !repeticiones ||
-      isNaN(repeticiones) ||
-      repeticiones <= 0 ||
-      !peso ||
-      isNaN(peso) ||
-      peso <= 0
-    )
-      return;
-
+  const addNewSet = (exercise) => {
     const updatedExercises = exercises.map((ex) =>
       ex.ejercicioid === exercise.ejercicioid
         ? {
@@ -127,20 +156,16 @@ export default function Workout() {
               ...ex.series,
               {
                 id: Date.now(),
-                repeticiones: Number(repeticiones),
-                peso: Number(peso),
+                repeticiones: "",
+                peso: "",
               },
             ],
           }
         : ex
     );
-
-    setExercises(updatedExercises); // Actualizamos el estado con el nuevo set
-    setRepsInput({ ...repsInput, [exercise.ejercicioid]: "" });
-    setWeightInput({ ...weightInput, [exercise.ejercicioid]: "" });
+    setExercises(updatedExercises);
   };
 
-  // Función para eliminar un set de un ejercicio
   const deleteSet = (exerciseId, setId) => {
     const updatedExercises = exercises.map((exercise) =>
       exercise.ejercicioid === exerciseId
@@ -150,26 +175,50 @@ export default function Workout() {
           }
         : exercise
     );
-
-    setExercises(updatedExercises); // Actualizamos el estado con el set eliminado
+    setExercises(updatedExercises);
   };
 
-  // Función para calcular el volumen de un ejercicio
+  const updateSetValue = (exerciseId, setId, field, value) => {
+    const updatedExercises = exercises.map((exercise) =>
+      exercise.ejercicioid === exerciseId
+        ? {
+            ...exercise,
+            series: exercise.series.map((set) =>
+              set.id === setId
+                ? {
+                    ...set,
+                    [field]: value,
+                  }
+                : set
+            ),
+          }
+        : exercise
+    );
+    setExercises(updatedExercises);
+  };
+
   const calculateExerciseVolume = (exercise) => {
     if (!exercise.series || exercise.series.length === 0) return 0;
-    return exercise.series.reduce(
-      (total, set) => total + set.repeticiones * set.peso,
-      0
-    );
+    return exercise.series.reduce((total, set) => {
+      const reps = Number(set.repeticiones) || 0;
+      const weight = Number(set.peso) || 0;
+      return total + reps * weight;
+    }, 0);
   };
 
-  // Función para calcular el volumen total de todos los ejercicios
   const calculateTotalVolume = () => {
     if (exercises.length === 0) return 0;
     return exercises.reduce(
       (total, exercise) => total + calculateExerciseVolume(exercise),
       0
     );
+  };
+
+  const editWorkout = (exercise) => {
+    const updatedExercises = exercises.map((ex) =>
+      ex.ejercicioid === exercise.ejercicioid ? { ...ex, isClosed: false } : ex
+    );
+    setExercises(updatedExercises);
   };
 
   return (
@@ -195,7 +244,6 @@ export default function Workout() {
         </div>
       </div>
 
-      {/* Exercises List */}
       {isLoading ? (
         <div className="flex justify-center items-center py-10">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -210,28 +258,77 @@ export default function Workout() {
           >
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-2xl font-semibold">{exercise.nombre}</h3>
-              <button
-                onClick={() => handleDeleteExercise(exercise)}
-                className="text-red-500 text-sm"
-              >
-                Eliminar
-              </button>
+              <div className="flex space-x-2">
+                {exercise.isClosed && (
+                  <button
+                    onClick={() => editWorkout(exercise)}
+                    className="px-4 py-1 bg-green-500 text-white text-sm rounded-md shadow transition duration-200"
+                  >
+                    Editar
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDeleteExercise(exercise)}
+                  className="px-3 py-1 bg-red-500 text-white text-sm rounded-md shadow transition duration-200"
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
 
             {exercise.series.length > 0 ? (
               <ul className="my-4">
-                {exercise.series.map((set) => (
+                {exercise.series.map((set, index) => (
                   <li
                     key={set.id}
-                    className="flex justify-between mb-4 items-center border-b py-1"
+                    className="flex justify-between mb-4 items-center border-b py-2"
                   >
-                    <span className="text-xl">
-                      {set.repeticiones} x {set.peso}kg
-                    </span>
+                    <div className="flex items-center space-x-2 flex-1">
+                      {exercise.isClosed ? (
+                        <span className="text-xl">
+                          {set.repeticiones} x {set.peso}kg
+                        </span>
+                      ) : (
+                        <>
+                          <input
+                            type="number"
+                            min="1"
+                            placeholder="Reps"
+                            value={set.repeticiones}
+                            onChange={(e) =>
+                              updateSetValue(
+                                exercise.ejercicioid,
+                                set.id,
+                                "repeticiones",
+                                e.target.value
+                              )
+                            }
+                            className="border p-2 rounded w-1/3 text-center"
+                          />
+                          <span className="text-sm">x</span>
+                          <input
+                            type="number"
+                            min="1"
+                            placeholder="Peso"
+                            value={set.peso}
+                            onChange={(e) =>
+                              updateSetValue(
+                                exercise.ejercicioid,
+                                set.id,
+                                "peso",
+                                e.target.value
+                              )
+                            }
+                            className="border p-2 rounded w-1/3 text-center"
+                          />
+                          <span>kg</span>
+                        </>
+                      )}
+                    </div>
                     {!exercise.isClosed && (
                       <button
                         onClick={() => deleteSet(exercise.ejercicioid, set.id)}
-                        className="text-red-400 text-xs"
+                        className="text-red-400 text-xs ml-4"
                       >
                         Eliminar
                       </button>
@@ -244,56 +341,21 @@ export default function Workout() {
                 No registraste series todavía
               </p>
             )}
-            {showDeleteModal && (
-              <DeleteModal
-                exercise={exerciseToDelete}
-                onClose={() => setShowDeleteModal(false)}
-                onConfirm={confirmDelete}
-              />
-            )}
 
             {!exercise.isClosed && (
               <>
-                <div className="flex my-4">
-                  <input
-                    type="number"
-                    min="1"
-                    value={repsInput[exercise.ejercicioid] || ""}
-                    onChange={(e) =>
-                      setRepsInput({
-                        ...repsInput,
-                        [exercise.ejercicioid]: e.target.value,
-                      })
-                    }
-                    placeholder="Repeticiones"
-                    className="border p-2 rounded-l w-full"
-                  />
-                  <input
-                    type="number"
-                    min="1"
-                    value={weightInput[exercise.ejercicioid] || ""}
-                    onChange={(e) =>
-                      setWeightInput({
-                        ...weightInput,
-                        [exercise.ejercicioid]: e.target.value,
-                      })
-                    }
-                    placeholder="Peso (kg)"
-                    className="border p-2 rounded-l w-full"
-                  />
+                <div className="flex  mb-4">
                   <button
-                    onClick={() => addSet(exercise)}
-                    className="bg-green-500 text-white px-4 rounded-r"
+                    onClick={() => addNewSet(exercise)}
+                    className="bg-blue-500 text-white px-3 py-1 rounded"
                   >
-                    Agregar
+                    Agregar serie
                   </button>
                 </div>
 
                 <div className="text-right">
                   <button
-                    onClick={() => {
-                      handleCloseExercise(exercise);
-                    }}
+                    onClick={() => handleCloseExercise(exercise)}
                     className="bg-green-500 text-white px-4 py-2 rounded mt-4"
                   >
                     Guardar y cerrar ejercicio
@@ -301,9 +363,12 @@ export default function Workout() {
                 </div>
               </>
             )}
-            <p className="mt-2 text-xl font-semibold">
-              Volumen: {calculateExerciseVolume(exercise)} kg
-            </p>
+
+            <div className="flex justify-between items-center mt-4">
+              <p className="mt-2 text-xl font-semibold">
+                Volumen: {calculateExerciseVolume(exercise)} kg
+              </p>
+            </div>
           </div>
         ))
       ) : (
@@ -312,7 +377,14 @@ export default function Workout() {
         </p>
       )}
 
-      {/* Total Volume */}
+      {showDeleteModal && (
+        <DeleteModal
+          exercise={exerciseToDelete}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={confirmDelete}
+        />
+      )}
+
       <div className="bg-white rounded-lg shadow p-4 mt-6">
         <h3 className="text-2xl font-semibold">Volumen total</h3>
         <p className="text-xl">{calculateTotalVolume()} kg</p>

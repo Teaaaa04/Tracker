@@ -110,4 +110,42 @@ router.delete("/:ejercicioid", async (req, res) => {
   }
 });
 
+router.put("/:ejercicioid", async (req, res) => {
+  const { ejercicioid } = req.params;
+  const { series } = req.body;
+
+  try {
+    // Actualizar las series asociadas al ejercicio
+    if (series && series.length > 0) {
+      // 1. Eliminar series existentes para ese ejercicio
+      await supabase.from("serie").delete().eq("ejercicioid", ejercicioid);
+
+      // 2. Insertar las nuevas series
+      const nuevasSeries = series.map((serie) => ({
+        repeticiones: serie.repeticiones,
+        peso: serie.peso,
+        ejercicioid,
+      }));
+
+      const { error: insertError } = await supabase
+        .from("serie")
+        .insert(nuevasSeries);
+
+      if (insertError) {
+        throw new Error(insertError.message);
+      }
+    }
+
+    const { data, error: err } = await supabase
+      .from("ejercicio")
+      .select("*")
+      .eq("ejercicioid", ejercicioid);
+
+    res.status(200).json(data[0]); // Retornamos el ejercicio actualizado
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al actualizar el ejercicio" });
+  }
+});
+
 module.exports = router;
