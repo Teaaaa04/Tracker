@@ -112,13 +112,13 @@ export default function Home() {
         <h1 className="text-2xl font-bold mb-4">{categoriaName}</h1>
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <h2 className="text-lg font-semibold mb-2">Agregar entrenamiento</h2>
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-between">
             <input
               type="text"
               value={newWorkoutName}
               onChange={(e) => setNewWorkoutName(e.target.value)}
               placeholder="Nuevo entrenamiento"
-              className="flex-1 p-2 border rounded"
+              className="flex-1 p-2 w-1/2 border rounded"
             />
             <input
               type="date"
