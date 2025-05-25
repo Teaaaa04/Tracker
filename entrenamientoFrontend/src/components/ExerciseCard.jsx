@@ -120,7 +120,7 @@ const ExerciseCard = ({ exercise, functions, exercisesState }) => {
                       placeholder="Peso"
                       value={set.peso}
                       onChange={(e) =>
-                        functions.updateSetValue(
+                        updateSetValue(
                           exercise.ejercicioid,
                           set.id,
                           "peso",

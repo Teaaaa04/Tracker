@@ -23,7 +23,6 @@ const GoogleLogin = () => {
       } = await supabase.auth.getSession();
 
       if (session) {
-        // Guardar el userId (puedes usar el id o email del usuario de Supabase)
         navigate("/categories");
       }
     };
@@ -32,14 +31,21 @@ const GoogleLogin = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-md">
-      <h2 className="text-2xl font-bold mb-4">Iniciar sesión</h2>
-      <button
-        className="bg-red-500 text-white p-4 rounded-lg shadow-sm"
-        onClick={signInWithGoogle}
-      >
-        Iniciar sesión con Google
-      </button>
+    <div className="flex justify-center items-center min-h-screen bg-gray-50">
+      <div className="text-center">
+        <h2 className="text-2xl font-semibold mb-6">Iniciar sesión</h2>
+        <button
+          onClick={signInWithGoogle}
+          className="flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg shadow-sm hover:bg-gray-100 transition duration-150 w-72"
+        >
+          <img
+            src="https://developers.google.com/identity/images/g-logo.png"
+            alt="Google"
+            className="w-5 h-5"
+          />
+          <span className="text-sm font-medium">Iniciar sesión con Google</span>
+        </button>
+      </div>
     </div>
   );
 };
