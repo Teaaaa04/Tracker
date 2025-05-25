@@ -5,7 +5,7 @@ import {
   getWorkouts,
   addWorkout,
   deleteWorkout,
-} from "./services/entrenamientos.js";
+} from "../services/entrenamientos.js";
 
 const formatDate = (date) => {
   const options = { weekday: "long", day: "numeric", month: "long" };
@@ -74,7 +74,7 @@ export default function Home() {
 
   const handleSelectWorkout = (id) => {
     localStorage.setItem("workoutId", id);
-    navigate("/workout"); // Navegar a la página de ejercicios
+    navigate("/exercises"); // Navegar a la página de ejercicios
   };
 
   const handleModalClose = () => {

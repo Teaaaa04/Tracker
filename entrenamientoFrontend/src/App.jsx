@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./Home";
-import Workout from "./Workout";
+import Home from "./pages/Workouts";
+import Workout from "./pages/Exercises";
 import UserSelect from "./UserSelect";
-import Categories from "./Categories";
+import Categories from "./pages/Categories";
 
 export default function App() {
   return (
@@ -16,9 +16,9 @@ export default function App() {
 
         <Routes>
           <Route path="/categories" element={<Categories />} />
-          <Route path="/home" element={<Home />} />
+          <Route path="/workouts" element={<Home />} />
           <Route path="/" element={<UserSelect />} />
-          <Route path="/workout" element={<Workout />} />
+          <Route path="/exercisesa" element={<Workout />} />
         </Routes>
       </div>
     </Router>

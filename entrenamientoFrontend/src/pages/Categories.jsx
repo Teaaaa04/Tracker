@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getCategories, addCategory } from "./services/categorias.js";
+import { getCategories, addCategory } from "../services/categorias.js";
 import { useNavigate } from "react-router-dom";
 
 const Categories = () => {
@@ -13,7 +13,7 @@ const Categories = () => {
   const handleCategorySelect = (categoryId, categoryName) => {
     localStorage.setItem("categoryId", categoryId);
     localStorage.setItem("categoryName", categoryName); // Cambia esto si necesitas otro valor
-    navigate("/home");
+    navigate("/workouts");
   };
 
   useEffect(() => {
