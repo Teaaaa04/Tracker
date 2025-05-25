@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getCategories, addCategory } from "../services/categorias.js";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient.js";
 
 const Categories = () => {
   const navigate = useNavigate();
@@ -8,7 +9,7 @@ const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const userId = localStorage.getItem("userId");
+  const [userId, setUserId] = useState("");
 
   const handleCategorySelect = (categoryId, categoryName) => {
     localStorage.setItem("categoryId", categoryId);
@@ -20,14 +21,32 @@ const Categories = () => {
     async function fetchCategories() {
       setIsLoading(true);
 
-      const data = await getCategories(userId);
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error || !user) {
+        console.error("No se pudo obtener el usuario:", error?.message);
+        navigate("/");
+        return;
+      }
+
+      setUserId(user.id);
+      const data = await getCategories(user.id);
+
+      if (!data || data.length === 0) {
+        setCategories([]);
+        setIsLoading(false);
+        return;
+      }
       setCategories(data);
 
       setIsLoading(false);
     }
 
     fetchCategories();
-  }, [userId]);
+  }, []);
 
   const handleAddCategory = async () => {
     setIsLoading(true);

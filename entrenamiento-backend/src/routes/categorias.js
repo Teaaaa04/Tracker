@@ -10,9 +10,7 @@ router.post("/", async (req, res) => {
   // Insertar el nuevo entrenamiento en Supabase
   const { data, error } = await supabase
     .from("categoria") // Asegúrate de que la tabla 'entrenamientos' esté creada en Supabase
-    .insert(
-      { nombre, userid } // Insertar el campo 'fecha'
-    )
+    .insert({ nombre, user_uuid: userid, userid: 1 })
     .select("*"); // Seleccionar todos los campos del nuevo entrenamiento
 
   if (error) {
@@ -27,7 +25,7 @@ router.get("/:id", async (req, res) => {
   const { data, error } = await supabase
     .from("categoria") // Seleccionar todos los entrenamientos de la tabla
     .select("*")
-    .eq("userid", req.params.id); // Filtrar por el ID del usuario
+    .eq("user_uuid", req.params.id); // Filtrar por el ID del usuario
 
   if (data === null) {
     return res.status(404).json({ error: "No se encontraron categorias" });
