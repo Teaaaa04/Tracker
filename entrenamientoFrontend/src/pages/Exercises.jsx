@@ -1,18 +1,18 @@
 import { useState, useEffect } from "react";
-import DeleteModal from "./components/DeleteModal.jsx";
+import DeleteModal from "../components/DeleteModal.jsx";
 import { useNavigate } from "react-router-dom";
-import Notificacion from "./components/Notificacion.jsx";
-import ExerciseCard from "./components/ExerciseCard";
+import Notificacion from "../components/Notificacion.jsx";
+import ExerciseCard from "../components/ExerciseCard.jsx";
 
 import {
   closeExercise,
   deleteExercise,
   getExercises,
   updateExercise,
-} from "./services/ejercicios.js";
-import WorkoutHeader from "./components/WorkoutHeader.jsx";
-import AddExerciseForm from "./components/AddExerciseForm.jsx";
-import LoadingAnimation from "./components/LoadingAnimation.jsx";
+} from "../services/ejercicios.js";
+import WorkoutHeader from "../components/WorkoutHeader.jsx";
+import AddExerciseForm from "../components/AddExerciseForm.jsx";
+import LoadingAnimation from "../components/LoadingAnimation.jsx";
 
 export default function Workout() {
   const navigate = useNavigate();
@@ -185,7 +185,7 @@ export default function Workout() {
         <p className="text-xl">{calculateTotalVolume()} kg</p>
       </div>
       <button
-        onClick={() => navigate("/home")}
+        onClick={() => navigate("/workouts")}
         className="mt-6 block w-full bg-blue-500 text-white py-2 rounded"
       >
         Volver a la lista de entrenamientos
