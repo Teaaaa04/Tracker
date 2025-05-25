@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import DeleteModal from "./DeleteModal";
 import { useNavigate } from "react-router-dom";
+import Notificacion from "./Notificacion";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -19,6 +20,8 @@ export default function Workout() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [exerciseToDelete, setExerciseToDelete] = useState(null);
   const [exerciseName, setExerciseName] = useState("");
+  const [showMenu, setShowMenu] = useState(false);
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     const fetchExercises = async () => {
@@ -44,6 +47,72 @@ export default function Workout() {
 
     fetchExercises();
   }, [workoutId]);
+
+  // Función para copiar la rutina actual
+  const copiarRutina = async () => {
+    try {
+      // Crear el objeto a copiar con metadatos
+      const rutinaData = {
+        ejercicios: exercises.map((ejercicio) => ({
+          nombre: ejercicio.nombre,
+          series: ejercicio.series
+            .filter((serie) => serie.repeticiones && serie.peso)
+            .map((serie) => ({
+              repeticiones: Number(serie.repeticiones),
+              peso: Number(serie.peso),
+            })),
+        })),
+      };
+
+      // Convertir a JSON y copiar al portapapeles
+      const jsonString = JSON.stringify(rutinaData, null, 2);
+      await navigator.clipboard.writeText(jsonString);
+
+      setNotification("Rutina copiada");
+
+      localStorage.setItem("copiedWorkout", jsonString);
+    } catch (error) {
+      console.error("Error al copiar rutina:", error);
+    }
+  };
+
+  // Función para pegar una rutina
+  const pegarRutina = async () => {
+    try {
+      // Obtener la rutina copiada del localStorage
+
+      if (!localStorage.getItem("copiedWorkout")) {
+        setNotification("No hay rutina copiada");
+        return;
+      }
+
+      const copiedWorkoutData = localStorage.getItem("copiedWorkout");
+
+      // Parsear los datos JSON
+      const rutinaData = JSON.parse(copiedWorkoutData);
+
+      // Convertir los ejercicios copiados al formato interno de la app
+      const nuevosEjercicios = rutinaData.ejercicios.map(
+        (ejercicio, index) => ({
+          ejercicioid: Date.now() + index, // ID único basado en timestamp
+          nombre: ejercicio.nombre,
+          series: ejercicio.series.map((serie, serieIndex) => ({
+            id: Date.now() + index * 1000 + serieIndex, // ID único para cada serie
+            repeticiones: serie.repeticiones.toString(),
+            peso: serie.peso.toString(),
+          })),
+          isClosed: false, // Los ejercicios pegados empiezan abiertos para edición
+        })
+      );
+
+      setExercises([...exercises, ...nuevosEjercicios]);
+
+      // Limpiar el localStorage después de pegar
+      localStorage.removeItem("copiedWorkout");
+    } catch (error) {
+      console.error("Error al pegar rutina:", error);
+    }
+  };
 
   const handleDeleteExercise = (exercise) => {
     setExerciseToDelete(exercise);
@@ -223,8 +292,88 @@ export default function Workout() {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-md">
-      <h1 className="text-2xl font-bold mb-4">Detalles del entrenamiento</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold mb-4">Detalles del entrenamiento</h1>
 
+        <div className="relative mb-4">
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Opciones de rutina"
+          >
+            <svg
+              className="w-6 h-6 text-gray-600"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+            </svg>
+          </button>
+
+          {showMenu && (
+            <div className="absolute top-8 right-3 bg-white rounded-lg shadow-lg border z-10 min-w-48">
+              <div className="py-1">
+                <button
+                  onClick={() => {
+                    copiarRutina();
+                    setShowMenu(false);
+                  }}
+                  disabled={exercises.length === 0}
+                  className={`w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 ${
+                    exercises.length === 0
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "text-gray-700"
+                  }`}
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Copiar Rutina
+                </button>
+
+                <button
+                  onClick={() => {
+                    pegarRutina();
+                    setShowMenu(false);
+                  }}
+                  className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                  Pegar Rutina
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        {showMenu && (
+          <div
+            className="fixed inset-0 z-5"
+            onClick={() => setShowMenu(false)}
+          />
+        )}
+      </div>
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <h2 className="text-lg font-semibold mb-2">Agregar ejercicio</h2>
         <div className="flex">
@@ -243,7 +392,6 @@ export default function Workout() {
           </button>
         </div>
       </div>
-
       {isLoading ? (
         <div className="flex justify-center items-center py-10">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -376,7 +524,6 @@ export default function Workout() {
           No registraste ejercicios todavía
         </p>
       )}
-
       {showDeleteModal && (
         <DeleteModal
           exercise={exerciseToDelete}
@@ -384,18 +531,24 @@ export default function Workout() {
           onConfirm={confirmDelete}
         />
       )}
-
       <div className="bg-white rounded-lg shadow p-4 mt-6">
         <h3 className="text-2xl font-semibold">Volumen total</h3>
         <p className="text-xl">{calculateTotalVolume()} kg</p>
       </div>
-
       <button
         onClick={() => navigate("/home")}
         className="mt-6 block w-full bg-blue-500 text-white py-2 rounded"
       >
         Volver a la lista de entrenamientos
       </button>
+      {notification && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <Notificacion
+            notification={notification}
+            onClose={() => setNotification(null)}
+          />
+        </div>
+      )}
     </div>
   );
 }
