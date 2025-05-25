@@ -24,7 +24,7 @@ const AddExerciseForm = ({ exercises, setExercises }) => {
   return (
     <div className="bg-white rounded-lg shadow p-4 mb-6">
       <h2 className="text-lg font-semibold mb-2">Agregar ejercicio</h2>
-      <div className="flex">
+      <div className="flex gap-2">
         <input
           type="text"
           value={exerciseName}

@@ -3,6 +3,7 @@ import DeleteModal from "../components/DeleteModal.jsx";
 import { useNavigate } from "react-router-dom";
 import Notificacion from "../components/Notificacion.jsx";
 import ExerciseCard from "../components/ExerciseCard.jsx";
+import { supabase } from "../supabaseClient.js";
 
 import {
   closeExercise,
@@ -22,6 +23,23 @@ export default function Workout() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [exerciseToDelete, setExerciseToDelete] = useState(null);
   const [notification, setNotification] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error || !user) {
+        console.error("No se pudo obtener el usuario:", error?.message);
+        navigate("/");
+        return;
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const fetchExercises = async () => {
@@ -145,44 +163,46 @@ export default function Workout() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-md">
-      <WorkoutHeader
-        exercises={exercises}
-        setExercises={setExercises}
-        setNotification={setNotification}
-      />
-      <AddExerciseForm exercises={exercises} setExercises={setExercises} />
-
-      {isLoading ? (
-        <LoadingAnimation />
-      ) : exercises.length > 0 ? (
-        exercises.map((exercise) => (
-          <ExerciseCard
-            key={exercise.ejercicioid}
-            exercise={exercise}
-            functions={{
-              handleDeleteExercise,
-              handleCloseExercise,
-              calculateExerciseVolume,
-            }}
-            exercisesState={{ exercises, setExercises }}
-          />
-        ))
-      ) : (
-        <p className="text-gray-500 text-center">
-          No registraste ejercicios todavía
-        </p>
-      )}
-      {showDeleteModal && (
-        <DeleteModal
-          exercise={exerciseToDelete}
-          onClose={() => setShowDeleteModal(false)}
-          onConfirm={confirmDelete}
+    <div className="container mx-auto flex flex-col justify-between min-h-[100dvh]  px-4 py-6 max-w-md">
+      <div>
+        <WorkoutHeader
+          exercises={exercises}
+          setExercises={setExercises}
+          setNotification={setNotification}
         />
-      )}
-      <div className="bg-white rounded-lg shadow p-4 mt-6">
-        <h3 className="text-2xl font-semibold">Volumen total</h3>
-        <p className="text-xl">{calculateTotalVolume()} kg</p>
+        <AddExerciseForm exercises={exercises} setExercises={setExercises} />
+
+        {isLoading ? (
+          <LoadingAnimation />
+        ) : exercises.length > 0 ? (
+          exercises.map((exercise) => (
+            <ExerciseCard
+              key={exercise.ejercicioid}
+              exercise={exercise}
+              functions={{
+                handleDeleteExercise,
+                handleCloseExercise,
+                calculateExerciseVolume,
+              }}
+              exercisesState={{ exercises, setExercises }}
+            />
+          ))
+        ) : (
+          <p className="text-gray-500 text-center">
+            No registraste ejercicios todavía
+          </p>
+        )}
+        {showDeleteModal && (
+          <DeleteModal
+            exercise={exerciseToDelete}
+            onClose={() => setShowDeleteModal(false)}
+            onConfirm={confirmDelete}
+          />
+        )}
+        <div className="bg-white rounded-lg shadow p-4 mt-6">
+          <h3 className="text-2xl font-semibold">Volumen total</h3>
+          <p className="text-xl">{calculateTotalVolume()} kg</p>
+        </div>
       </div>
       <button
         onClick={() => navigate("/workouts")}

@@ -23,6 +23,7 @@ const addCategory = async (nombre, userId) => {
       }),
     });
     const data = await response.json();
+    console.log("Category added:", data);
     return data;
   } catch (error) {
     console.error("Error adding category:", error);

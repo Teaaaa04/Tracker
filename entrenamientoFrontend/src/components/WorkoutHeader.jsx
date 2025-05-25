@@ -57,7 +57,7 @@ const WorkoutHeader = ({ exercises, setExercises, setNotification }) => {
       <div className="relative mb-4">
         <button
           onClick={() => setShowMenu(!showMenu)}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className=" hover:bg-gray-100 rounded-full transition-colors"
           aria-label="Opciones de rutina"
         >
           <svg
